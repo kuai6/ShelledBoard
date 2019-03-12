@@ -82,7 +82,8 @@ void StartDefaultTask(void const * argument);
 void ledBlinking(void const * argument);
 
 /* USER CODE BEGIN PFP */
-
+static void MX_LWIP_Init(void);
+static void MX_LWIP_Process(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -124,6 +125,8 @@ int main(void)
 
   HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
+
+  MX_LWIP_Init();
 
   /* USER CODE END 2 */
 
@@ -167,7 +170,6 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -359,6 +361,8 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+      MX_LWIP_Process();
+
       HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_6);
       osDelay(500);
 
@@ -434,5 +438,13 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+
+static void MX_LWIP_Init(void)
+{
+    // TODO
+}
+
+static void MX_LWIP_Process(void)
+{}
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
