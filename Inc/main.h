@@ -86,6 +86,8 @@ void Error_Handler(void);
 #define ETH0_INT_GPIO_Port GPIOA
 #define CC3_Pin GPIO_PIN_5
 #define CC3_GPIO_Port GPIOC
+#define SPI2_CS_Pin GPIO_PIN_0
+#define SPI2_CS_GPIO_Port GPIOB
 #define R3_Pin GPIO_PIN_3
 #define R3_GPIO_Port GPIOD
 #define R2_Pin GPIO_PIN_6
