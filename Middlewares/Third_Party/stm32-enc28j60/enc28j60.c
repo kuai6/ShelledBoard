@@ -268,7 +268,7 @@ void enc28j60clkout(uint8_t clk)
 
 void enc28j60Init( uint8_t* macaddr )
 {
-	enableChip; // ss=0
+	//enableChip; // ss=0
 
 	// perform system reset
 	enc28j60WriteOp(ENC28J60_SOFT_RESET, 0, ENC28J60_SOFT_RESET);

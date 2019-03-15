@@ -71,7 +71,10 @@ UART_HandleTypeDef huart2;
 osThreadId defaultTaskHandle;
 osThreadId ledBlinkingTaskHandle;
 /* USER CODE BEGIN PV */
-uint8_t  mac[] = { 0x6f, 0x1e, 0xa4, 0xc8, 0x8e, 0xaf };
+//uint8_t  mac[] = { 0x6f, 0x1e, 0xa4, 0xc8, 0x8e, 0xaf };
+//uint8_t  ip[]  = {10,  10, 10, 5};
+
+uint8_t  mac[] = {02, 03, 04, 05, 06, 07};
 uint8_t  ip[]  = {10,  10, 10, 5};
 /* USER CODE END PV */
 
@@ -126,8 +129,7 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
+
 
   MX_LWIP_Init();
 
@@ -309,7 +311,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(R1_GPIO_Port, R1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(ETH0_RST_GPIO_Port, ETH0_RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(ETH0_RST_GPIO_Port, ETH0_RST_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : CC1_Pin CC2_Pin CC3_Pin */
   GPIO_InitStruct.Pin = CC1_Pin|CC2_Pin|CC3_Pin;
@@ -340,7 +342,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : ETH0_RST_Pin */
   GPIO_InitStruct.Pin = ETH0_RST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(ETH0_RST_GPIO_Port, &GPIO_InitStruct);
 
@@ -366,7 +368,7 @@ void StartDefaultTask(void const * argument)
   {
       MX_LWIP_Process();
 
-      HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_6);
+//      HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_6);
       osDelay(500);
 
   }
@@ -386,7 +388,7 @@ void ledBlinking(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-      HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
+//      HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
       osDelay(1000);
   }
   /* USER CODE END ledBlinking */
@@ -419,6 +421,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   */
 void Error_Handler(void)
 {
+
+  int i = 1;
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
 
