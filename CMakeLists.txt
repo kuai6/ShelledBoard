@@ -36,9 +36,8 @@ PROJECT(ShelledBoard C CXX ASM)
 set(CMAKE_CXX_STANDARD 11)
 
 #add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1)
-add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F103xE)
-
 add_definitions(
+    -D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F103xE
     -DETHERNET_LED_GPIO=GPIOD
     -DETHERNET_LED_PIN=GPIO_PIN_5
     -DETHERNET_CS_GPIO=GPIOA
