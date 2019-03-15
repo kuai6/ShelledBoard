@@ -405,7 +405,7 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-      MX_LWIP_Process();
+      //MX_LWIP_Process();
 
       HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_6);
       osDelay(500);
