@@ -46,7 +46,10 @@ add_definitions(
 
 file(GLOB_RECURSE SOURCES ${sources})
 
-include_directories(${includes})
+include_directories(
+    ${includes}
+    $${CMAKE_SOURCE_DIR}/Middlewares/Third_Party/stm32-enc28j60
+)
 
 add_executable($${PROJECT_NAME}.elf $${SOURCES} $${LINKER_SCRIPT})
 
