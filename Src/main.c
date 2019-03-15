@@ -44,7 +44,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "net.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -130,7 +130,7 @@ int main(void)
 
   //HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_RESET);
   //HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
-
+   network_init(&hspi2);
   //MX_LWIP_Init();
 
   /* USER CODE END 2 */
@@ -406,8 +406,6 @@ void StartDefaultTask(void const * argument)
   for(;;)
   {
       //MX_LWIP_Process();
-
-      HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_6);
       osDelay(500);
 
   }
@@ -427,7 +425,6 @@ void ledBlinking(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-      HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
       osDelay(1000);
   }
   /* USER CODE END ledBlinking */
