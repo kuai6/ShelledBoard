@@ -41,6 +41,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include <EtherShield.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -70,7 +71,8 @@ UART_HandleTypeDef huart2;
 osThreadId defaultTaskHandle;
 osThreadId ledBlinkingTaskHandle;
 /* USER CODE BEGIN PV */
-
+uint8_t  mac[] = { 0x6f, 0x1e, 0xa4, 0xc8, 0x8e, 0xaf };
+uint8_t  ip[]  = {10,  10, 10, 5};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -82,6 +84,7 @@ void StartDefaultTask(void const * argument);
 void ledBlinking(void const * argument);
 
 /* USER CODE BEGIN PFP */
+static void MX_Ethernet_Init(void);
 static void MX_LWIP_Init(void);
 static void MX_LWIP_Process(void);
 /* USER CODE END PFP */
@@ -234,7 +237,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_HARD_OUTPUT;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
   hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
@@ -439,8 +442,24 @@ void assert_failed(uint8_t *file, uint32_t line)
 }
 #endif /* USE_FULL_ASSERT */
 
+static void MX_Ethernet_Init(void)
+{
+    ES_enc28j60SpiInit(&hspi1);
+    ES_enc28j60Init(mac);
+
+    uint8_t enc28j60_rev = ES_enc28j60Revision();
+    if (enc28j60_rev <= 0)
+    {
+        int i = 0;
+        ++i;
+    }
+
+    ES_init_ip_arp_udp_tcp(mac, ip, 80);
+}
+
 static void MX_LWIP_Init(void)
 {
+    MX_Ethernet_Init();
     // TODO
 }
 
