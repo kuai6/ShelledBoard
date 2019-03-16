@@ -45,6 +45,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "net.h"
+#include "config.h"
+#include "fnode/service.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -400,16 +402,16 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const * argument)
 {
+    /* USER CODE BEGIN 5 */
 
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-      //MX_LWIP_Process();
-      osDelay(500);
+    fnode_service_t *service = fnode_service_create(SN, FBANKS_NUM, BANKS);
 
-  }
-  /* USER CODE END 5 */ 
+    for(;;)
+    {
+        fnode_service_update(service);
+        osDelay(1000);
+    }
+    /* USER CODE END 5 */ 
 }
 
 /* USER CODE BEGIN Header_ledBlinking */
