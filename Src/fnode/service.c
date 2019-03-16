@@ -1,15 +1,17 @@
 #include "service.h"
 #include "commands.h"
 #include "socket.h"
+#include "platform.h"
 #include <string.h>
+#include <Internet/TFTP/netutil.h>
+
 //#include <stdlib.h>
 //#include <unistd.h>
 //#include <sys/time.h>
 
-#define FNODE_BROADCAST_ADDR { 255, 255, 255, 255 }
-#define FNODE_BROADCAST_PORT 9999
-
-static size_t const FNODE_HELLO_FREQ = 1000;    // msec
+#define FNODE_BROADCAST_ADDR    { 255, 255, 255, 255 }
+#define FNODE_BROADCAST_PORT    9999
+#define FNODE_HELLO_FREQ        1000    // msec
 
 typedef enum
 {
@@ -31,12 +33,15 @@ struct fnode_service
     uint32_t                    keepalive;
     uint32_t                    resp_freq;
     fnet_address_t              server;
+    uint16_t                    server_port;
     size_t                      last_cmd_time;
 };
 
 static fnode_service_t service = {};
+static uint8_t buffer[1024];
 
 static fnode_service_state_t fnode_service_init_handler(fnode_service_t *svc);
+static fcmd_id               fnode_service_recv_cmd(fnode_service_t *svc);
 
 fnode_service_t *fnode_service_create(char const sn[FSN_LENGTH], uint32_t banks_num, fbank_info const banks[])
 {
@@ -80,6 +85,8 @@ void fnode_service_update(fnode_service_t *svc)
         case FSVC_INIT:
         {
             svc->state = fnode_service_init_handler(svc);
+            if (svc->state == FSVC_INIT)
+                psleep(FNODE_HELLO_FREQ);
             break;
         }
 
@@ -117,21 +124,55 @@ fnode_service_state_t fnode_service_init_handler(fnode_service_t *svc)
     // broadcast hello message
     fnet_socket_sendto(svc->socket, cmd_buf, cmd_buf_size, &broadcast_addr, FNODE_BROADCAST_PORT);
 
-//    fnet_socket_t rs[svc->ifaces_num], es[svc->ifaces_num];
-//    size_t rs_num = 0, es_num = 0;
-//    if (fnet_socket_select(svc->ifaces, svc->ifaces_num, rs, &rs_num, es, &es_num, FNODE_HELLO_FREQ) && rs_num)
-//    {
-//        if (rs_num)
-//            svc->socket = rs[0];
-//        if (fnode_service_recv_cmd(svc) == FCMD_CONF)
-//            return FSVC_NOTIFY_STATUS;
-//    }
+    if (fnode_service_recv_cmd(svc) == FCMD_CONF)
+        return FSVC_NOTIFY_STATUS;
 
     return FSVC_INIT;
 }
 
+fcmd_id fnode_service_recv_cmd(fnode_service_t *svc)
+{
+    fnet_address_t addr = {};
+    uint16_t port = 0;
+
+    int32_t const len = fnet_socket_recvfrom(svc->socket, buffer, sizeof buffer, &addr, &port, false);
+    if (len <= 0)
+        return FCMD_NVLD;
+
+    uint32_t const cmd_id = *(uint32_t const*)buffer;
+
+    switch(cmd_id)
+    {
+        case FCMD_CONF:
+        {
+            fcmd_conf const *cmd = (fcmd_conf const*)buffer;
+            svc->keepalive = cmd->keepalive;
+            svc->resp_freq =cmd->resp_freq;
+            svc->server = addr;
+            svc->server_port = port;
+            return FCMD_CONF;
+        }
+
+        case FCMD_PONG:
+        {
+            return FCMD_PONG;
+        }
+
+        case FCMD_DATA:
+        {
+            break;
+            //svc->data_handler(cmd, buf + FCMD_ID_LENGTH, read_len - FCMD_ID_LENGTH);
+            return FCMD_DATA;
+        }
+
+        default:
+            break;
+    }
+
+    return FCMD_NVLD;
+}
+
 /*
-static uint32_t              fnode_service_recv_cmd(fnode_service_t *svc);
 static fnode_service_state_t fnode_service_notify_status(fnode_service_t *svc);
 static fnode_service_state_t fnode_service_process_commands(fnode_service_t *svc);
 static size_t                fnode_service_time();
@@ -197,53 +238,6 @@ fnode_service_state_t fnode_service_process_commands(fnode_service_t *svc)
         fnode_service_recv_cmd(svc);
 
     return FSVC_NOTIFY_STATUS;
-}
-
-uint32_t fnode_service_recv_cmd(fnode_service_t *svc)
-{
-    char buf[65536];
-    size_t read_len = 0;
-    fnet_address_t addr;
-
-    if (fnet_socket_recvfrom(svc->socket, buf, sizeof buf, &read_len, &addr))
-    {
-        if (read_len < FCMD_ID_LENGTH)
-            return false;
-
-        uint32_t const cmd = *(uint32_t const*)buf;
-
-        switch(cmd)
-        {
-            case FCMD_CONF:
-            {
-                if (read_len < sizeof(fcmd_conf))
-                    return FCMD_NVLD;
-                fcmd_conf const *conf = (fcmd_conf const *)buf;
-                char keepalive_str[sizeof conf->keepalive + 1];
-                char resp_freq_str[sizeof conf->resp_freq + 1];
-                memcpy(keepalive_str, conf->keepalive, sizeof conf->keepalive);
-                memcpy(resp_freq_str, conf->resp_freq, sizeof conf->resp_freq);
-                keepalive_str[sizeof conf->keepalive] = 0;
-                resp_freq_str[sizeof conf->resp_freq] = 0;
-                svc->keepalive = atoi(keepalive_str);
-                svc->resp_freq = atoi(resp_freq_str);
-                svc->server = addr;
-                return cmd;
-            }
-
-            case FCMD_PONG:
-            {
-                return read_len == sizeof(fcmd_pong) ? cmd : FCMD_NVLD;
-            }
-
-            case FCMD_DATA:
-            {
-                svc->data_handler(cmd, buf + FCMD_ID_LENGTH, read_len - FCMD_ID_LENGTH);
-                return cmd;
-            }
-        }
-    }
-    return false;
 }
 
 size_t fnode_service_time()

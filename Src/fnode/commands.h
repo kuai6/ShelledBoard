@@ -29,11 +29,11 @@ typedef struct __attribute__ ((packed))
     //fbank_info  banks[banks_num];
 } fcmd_hello;
 
-typedef struct
+typedef struct __attribute__ ((packed))
 {
     fcmd_id     cmd;
-    char        keepalive[4];
-    char        resp_freq[4];
+    uint32_t    keepalive;  // msec
+    uint32_t    resp_freq;  // msec
 } fcmd_conf;
 
 typedef struct
