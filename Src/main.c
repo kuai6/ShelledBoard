@@ -73,11 +73,11 @@ UART_HandleTypeDef huart2;
 osThreadId defaultTaskHandle;
 osThreadId ledBlinkingTaskHandle;
 /* USER CODE BEGIN PV */
-//uint8_t  mac[] = { 0x6f, 0x1e, 0xa4, 0xc8, 0x8e, 0xaf };
-//uint8_t  ip[]  = {10,  10, 10, 5};
 
 uint8_t  mac[] = {02, 03, 04, 05, 06, 07};
 uint8_t  ip[]  = {10,  10, 10, 5};
+//uint8_t  mac[] = { 0x6f, 0x1e, 0xa4, 0xc8, 0x8e, 0xaf };
+//uint8_t  ip[]  = {10,  10, 10, 5};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -93,10 +93,39 @@ void ledBlinking(void const * argument);
 static void MX_Ethernet_Init(void);
 static void MX_LWIP_Init(void);
 static void MX_LWIP_Process(void);
+void StartDefaultTask(void const * argument);
+void ledBlinking(void const * argument);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+void lightOnOff(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin){
+    GPIO_PinState x = HAL_GPIO_ReadPin(GPIOx, GPIO_Pin);
+
+    if (!HAL_GPIO_ReadPin(GPIOx, GPIO_Pin)){
+        HAL_GPIO_WritePin(GPIOx, GPIO_Pin, GPIO_PIN_SET);
+    } else {
+        HAL_GPIO_WritePin(GPIOx, GPIO_Pin, GPIO_PIN_RESET);
+    }
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+
+    switch (GPIO_Pin){
+        case CC1_Pin:
+            lightOnOff(R1_GPIO_Port, R1_Pin);
+            break;
+        case CC2_Pin:
+            lightOnOff(R2_GPIO_Port, R2_Pin);
+            break;
+        case CC3_Pin:
+            lightOnOff(R3_GPIO_Port, R3_Pin);
+            break;
+        default:
+            break;
+    }
+}
 
 /* USER CODE END 0 */
 
@@ -132,12 +161,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
-
-  //HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_RESET);
-  //HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
    network_init(&hspi2);
-  //MX_LWIP_Init();
-
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -162,7 +186,6 @@ int main(void)
   ledBlinkingTaskHandle = osThreadCreate(osThread(ledBlinkingTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -355,12 +378,12 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOD, R3_Pin|R2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(ETH0_RST_GPIO_Port, ETH0_RST_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(ETH0_RST_GPIO_Port, ETH0_RST_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : CC1_Pin CC2_Pin CC3_Pin */
-  GPIO_InitStruct.Pin = CC1_Pin|CC2_Pin|CC3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  /*Configure GPIO pins : CC2_Pin CC3_Pin CC1_Pin */
+  GPIO_InitStruct.Pin = CC2_Pin|CC3_Pin|CC1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : ETH0_INT_Pin */
@@ -386,9 +409,19 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : ETH0_RST_Pin */
   GPIO_InitStruct.Pin = ETH0_RST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(ETH0_RST_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI2_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 }
 
@@ -405,7 +438,8 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const * argument)
 {
-    /* USER CODE BEGIN 5 */
+
+  /* USER CODE BEGIN 5 */
 
     fnode_service_t *service = fnode_service_create(SN, FBANKS_NUM, BANKS);
 
@@ -414,7 +448,7 @@ void StartDefaultTask(void const * argument)
         fnode_service_update(service);
         osDelay(1000);
     }
-    /* USER CODE END 5 */ 
+  /* USER CODE END 5 */ 
 }
 
 /* USER CODE BEGIN Header_ledBlinking */
@@ -462,8 +496,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   */
 void Error_Handler(void)
 {
-
-  int i = 1;
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
 
