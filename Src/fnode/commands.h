@@ -19,8 +19,6 @@ typedef enum
     FCMD_DATA = FCMD('D', 'A', 'T', 'A')
 } fcmd_id;
 
-#define FCMD_CHARS(cmd) (cmd & 0xFF), ((cmd >> 8) & 0xFF), ((cmd >> 16) & 0xFF), ((cmd >> 24) & 0xFF)
-
 typedef struct __attribute__ ((packed))
 {
     fcmd_id     cmd;
@@ -51,13 +49,15 @@ typedef struct
 {
     fcmd_id     cmd;
     char        sn[FSN_LENGTH];
-    char        data[FMAX_DATA_LENGTH];
-} fcmd_node_status;
+    uint8_t     banks_num;
+    uint8_t     banks[FMAX_DATA_LENGTH];
+} fcmd_status;
 
 typedef struct
 {
     fcmd_id     cmd;
-    char        data[FMAX_DATA_LENGTH];
+    uint8_t     banks_num;
+    uint8_t     banks[FMAX_DATA_LENGTH];
 } fcmd_data;
 
 /*
@@ -77,9 +77,15 @@ typedef struct
              <-         PONG
     DATA     ->
         SN[8]
-        VAL[]
+        BANKS_NUM[1]
+        ID[1], PINS[...]
+        ID[1], PINS[...]
+        ID[1], PINS[...]
              <-         DATA
-                            VAL[]
+                            BANKS_NUM[1]
+                            ID[1], PINS[...]
+                            ID[1], PINS[...]
+                            ID[1], PINS[...]
 */
 
 #ifdef __cplusplus

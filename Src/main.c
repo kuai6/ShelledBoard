@@ -71,13 +71,8 @@ SPI_HandleTypeDef hspi2;
 UART_HandleTypeDef huart2;
 
 osThreadId defaultTaskHandle;
-osThreadId ledBlinkingTaskHandle;
 /* USER CODE BEGIN PV */
 
-uint8_t  mac[] = {02, 03, 04, 05, 06, 07};
-uint8_t  ip[]  = {10,  10, 10, 5};
-//uint8_t  mac[] = { 0x6f, 0x1e, 0xa4, 0xc8, 0x8e, 0xaf };
-//uint8_t  ip[]  = {10,  10, 10, 5};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -87,14 +82,12 @@ static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_SPI2_Init(void);
 void StartDefaultTask(void const * argument);
-void ledBlinking(void const * argument);
 
 /* USER CODE BEGIN PFP */
 static void MX_Ethernet_Init(void);
 static void MX_LWIP_Init(void);
 static void MX_LWIP_Process(void);
 void StartDefaultTask(void const * argument);
-void ledBlinking(void const * argument);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -180,10 +173,6 @@ int main(void)
   /* definition and creation of defaultTask */
   osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
-
-  /* definition and creation of ledBlinkingTask */
-  osThreadDef(ledBlinkingTask, ledBlinking, osPriorityNormal, 0, 128);
-  ledBlinkingTaskHandle = osThreadCreate(osThread(ledBlinkingTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* USER CODE END RTOS_THREADS */
@@ -446,27 +435,8 @@ void StartDefaultTask(void const * argument)
     for(;;)
     {
         fnode_service_update(service);
-        osDelay(1000);
     }
   /* USER CODE END 5 */ 
-}
-
-/* USER CODE BEGIN Header_ledBlinking */
-/**
-* @brief Function implementing the ledBlinkingTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_ledBlinking */
-void ledBlinking(void const * argument)
-{
-  /* USER CODE BEGIN ledBlinking */
-  /* Infinite loop */
-  for(;;)
-  {
-      osDelay(1000);
-  }
-  /* USER CODE END ledBlinking */
 }
 
 /**

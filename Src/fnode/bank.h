@@ -15,14 +15,25 @@ typedef enum
     FBANK_RELY = FBANK('R', 'E', 'L', 'Y')
 } fbank_type;
 
-#define FBANK_CHARS(bnk) (bnk & 0xFF), ((bnk >> 8) & 0xFF), ((bnk >> 16) & 0xFF), ((bnk >> 24) & 0xFF)
-
 typedef struct __attribute__ ((packed))
 {
-    char    type[FBANK_TYPE_LENGTH];
-    uint8_t id;
-    uint8_t pins;
+    fbank_type  type;
+    uint8_t     id;
+    uint8_t     pins;
 } fbank_info;
+
+typedef struct
+{
+    uint8_t  id;
+    union
+    {
+        uint8_t  const *pins8;
+        uint16_t const *pins16;
+    };
+} fbank_state;
+
+uint8_t  fpin_size(fbank_type bank_type);
+uint16_t fpins_vector_size(fbank_info const *inf);
 
 #ifdef __cplusplus
 }
