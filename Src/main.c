@@ -72,7 +72,7 @@ UART_HandleTypeDef huart2;
 
 osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
-
+static fnode_service_t *service = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -105,18 +105,31 @@ void lightOnOff(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin){
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
+    uint8_t pins = 0;
+
     switch (GPIO_Pin){
         case CC1_Pin:
+            pins |= 1 << 0;
             lightOnOff(R1_GPIO_Port, R1_Pin);
             break;
         case CC2_Pin:
+            pins |= 1 << 1;
             lightOnOff(R2_GPIO_Port, R2_Pin);
             break;
         case CC3_Pin:
+            pins |= 1 << 2;
             lightOnOff(R3_GPIO_Port, R3_Pin);
             break;
         default:
             break;
+    }
+
+    if (service)
+    {
+        fbank_state bank;
+        bank.id = 1;
+        bank.pins8 = &pins;
+        fnode_service_notify_state(service, 1, &bank);
     }
 }
 
@@ -430,7 +443,7 @@ void StartDefaultTask(void const * argument)
 
   /* USER CODE BEGIN 5 */
 
-    fnode_service_t *service = fnode_service_create(SN, FBANKS_NUM, BANKS);
+    service = fnode_service_create(SN, FBANKS_NUM, BANKS);
 
     for(;;)
     {
