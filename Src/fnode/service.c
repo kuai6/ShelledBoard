@@ -184,7 +184,7 @@ static void pingTask(fnode_service_t *svc)
 
 fnode_service_state_t fnode_service_notify_status(fnode_service_t *svc)
 {
-    ptask_start("pingTask", (ptask_fn_t)pingTask, svc);
+    pthread_start("pingTask", (pthread_fn_t)pingTask, svc);
     return FSVC_PROCESS_COMMANDS;
 }
 

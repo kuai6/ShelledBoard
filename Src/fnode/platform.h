@@ -7,11 +7,11 @@ extern "C" {
 
 void psleep(uint32_t msec);
 
-typedef void (*ptask_fn_t) (void *);
-typedef void * ptask_t;
+typedef void (*pthread_fn_t) (void *);
+typedef void * pthread_t;
 
-ptask_t ptask_start(char const *name, ptask_fn_t fn, void *argument);
-void ptask_terminate(ptask_t task);
+pthread_t pthread_start(char const *name, pthread_fn_t fn, void *argument);
+void      pthread_terminate(pthread_t task);
 
 #ifdef __cplusplus
 }
