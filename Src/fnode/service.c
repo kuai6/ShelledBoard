@@ -19,18 +19,19 @@ typedef enum
 
 struct fnode_service
 {
-    volatile int                ref_counter;
-    char                        sn[FSN_LENGTH];
-    uint32_t                    banks_num;
-    fbank_info const           *banks;
-    fnet_socket_t               socket;
-    fnode_service_state_t       state;
-    fnode_service_handler_t     handler;
-    uint32_t                    keepalive;
-    uint32_t                    resp_freq;
-    fnet_address_t              server;
-    uint16_t                    server_port;
-    uint8_t                     buffer[1024];
+    volatile int                    ref_counter;
+    char                            sn[FSN_LENGTH];
+    uint32_t                        banks_num;
+    fbank_info const               *banks;
+    fnet_socket_t                   socket;
+    fnode_service_state_t           state;
+    fnode_service_data_handler_t    data_handler;
+    fnode_service_dget_handler_t    dget_handler;
+    uint32_t                        keepalive;
+    uint32_t                        resp_freq;
+    fnet_address_t                  server;
+    uint16_t                        server_port;
+    uint8_t                         buffer[1024];
 };
 
 static fnode_service_t service = {};
@@ -160,8 +161,15 @@ fcmd_id fnode_service_recv_cmd(fnode_service_t *svc)
                 pbank += fpins_vector_size(bank_inf);
             }
 
-            svc->handler(cmd->banks_num, banks);
+            svc->data_handler(cmd->banks_num, banks);
             return FCMD_DATA;
+        }
+
+        case FCMD_DGET:
+        {
+            fcmd_dget const *cmd = (fcmd_dget const*)svc->buffer;
+            svc->dget_handler(cmd->bank_id);
+            return FCMD_DGET;
         }
 
         default:
@@ -252,10 +260,16 @@ void fnode_service_notify_state(fnode_service_t *svc, uint32_t banks_num, fbank_
     }
 }
 
-void fnode_service_reg_handler(fnode_service_t *svc, fnode_service_handler_t handler)
+void fnode_service_reg_data_handler(fnode_service_t *svc, fnode_service_data_handler_t handler)
 {
     if (svc)
-        svc->handler = handler;
+        svc->data_handler = handler;
+}
+
+void fnode_service_reg_dget_handler(fnode_service_t *svc, fnode_service_dget_handler_t handler)
+{
+    if (svc)
+        svc->dget_handler = handler;
 }
 
 static fbank_info const * fnode_service_bank(fnode_service_t *svc, uint8_t bank_id)

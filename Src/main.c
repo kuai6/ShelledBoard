@@ -428,6 +428,29 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+static void fnode_service_dget(uint8_t bank_id)
+{
+    switch(bank_id)
+    {
+        case 0:     // TADC
+        {
+            uint16_t pin = 0;
+            //HAL_ADC_GetValue
+
+            fbank_state bank;
+            bank.id = 0;
+            bank.pins16 = &pin;
+            fnode_service_notify_state(service, 1, &bank);
+            break;
+        }
+        case 1:     // COCL
+            // TODO
+            break;
+        case 2:     // RELY
+            // TODO
+            break;
+    }
+}
 
 /* USER CODE END 4 */
 
@@ -444,6 +467,7 @@ void StartDefaultTask(void const * argument)
   /* USER CODE BEGIN 5 */
 
     service = fnode_service_create(SN, FBANKS_NUM, BANKS);
+    fnode_service_reg_dget_handler(service, fnode_service_dget);
 
     for(;;)
     {

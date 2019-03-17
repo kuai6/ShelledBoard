@@ -16,7 +16,8 @@ typedef enum
     FCMD_CONF = FCMD('C', 'O', 'N', 'F'),
     FCMD_PING = FCMD('P', 'I', 'N', 'G'),
     FCMD_PONG = FCMD('P', 'O', 'N', 'G'),
-    FCMD_DATA = FCMD('D', 'A', 'T', 'A')
+    FCMD_DATA = FCMD('D', 'A', 'T', 'A'),
+    FCMD_DGET = FCMD('D', 'G', 'E', 'T')
 } fcmd_id;
 
 typedef struct __attribute__ ((packed))
@@ -60,6 +61,12 @@ typedef struct
     uint8_t     banks[FMAX_DATA_LENGTH];
 } fcmd_data;
 
+typedef struct __attribute__ ((packed))
+{
+    fcmd_id     cmd;
+    uint8_t     bank_id;
+} fcmd_dget;
+
 /*
     Device              Controller
     HELO     ->
@@ -86,6 +93,12 @@ typedef struct
                             ID[1], PINS[...]
                             ID[1], PINS[...]
                             ID[1], PINS[...]
+             <-         DGET
+                            ID[1]
+    DATA     ->
+        SN[8]
+        BANKS_NUM[1]
+        ID[1], PINS[...]
 */
 
 #ifdef __cplusplus
