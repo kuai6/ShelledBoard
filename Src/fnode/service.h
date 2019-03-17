@@ -9,8 +9,8 @@ extern "C" {
 
 typedef struct fnode_service fnode_service_t;
 
-typedef void (*fnode_service_data_handler_t)(uint32_t banks_num, fbank_state const banks[]);
-typedef void (*fnode_service_dget_handler_t)(uint8_t bank_id);
+typedef void (*fnode_service_data_handler_t)(fnode_service_t *, uint32_t banks_num, fbank_state const banks[]);
+typedef void (*fnode_service_dget_handler_t)(fnode_service_t *, uint8_t bank_id);
 
 fnode_service_t *fnode_service_create(char const sn[FSN_LENGTH], uint32_t banks_num, fbank_info const banks[]);
 fnode_service_t *fnode_service_retain(fnode_service_t *);

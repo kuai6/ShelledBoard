@@ -161,14 +161,14 @@ fcmd_id fnode_service_recv_cmd(fnode_service_t *svc)
                 pbank += fpins_vector_size(bank_inf);
             }
 
-            svc->data_handler(cmd->banks_num, banks);
+            svc->data_handler(svc, cmd->banks_num, banks);
             return FCMD_DATA;
         }
 
         case FCMD_DGET:
         {
             fcmd_dget const *cmd = (fcmd_dget const*)svc->buffer;
-            svc->dget_handler(cmd->bank_id);
+            svc->dget_handler(svc, cmd->bank_id);
             return FCMD_DGET;
         }
 

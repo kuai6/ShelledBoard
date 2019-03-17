@@ -93,7 +93,8 @@ void StartDefaultTask(void const * argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-static void fnode_service_dget(uint8_t bank_id);
+static void fnode_service_dget(fnode_service_t *svc, uint8_t bank_id);
+static void fnode_service_data(fnode_service_t *svc, uint32_t banks_num, fbank_state const banks[]);
 
 void lightOnOff(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin){
     GPIO_PinState x = HAL_GPIO_ReadPin(GPIOx, GPIO_Pin);
@@ -121,7 +122,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
             break;
     }
 
-    fnode_service_dget(1);
+    if (service)
+        fnode_service_dget(service, 1);
 }
 
 /* USER CODE END 0 */
@@ -419,14 +421,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-static void fnode_service_dget(uint8_t bank_id)
+static void fnode_service_dget(fnode_service_t *svc, uint8_t bank_id)
 {
-    if (!service)
-        return;
-
     switch(bank_id)
     {
-        case 0:     // TADC
+        case FBANK_TADC_ID: // TADC
         {
             uint16_t pin = 0;
             //HAL_ADC_GetValue
@@ -434,10 +433,11 @@ static void fnode_service_dget(uint8_t bank_id)
             fbank_state bank;
             bank.id = 0;
             bank.pins16 = &pin;
-            fnode_service_notify_state(service, 1, &bank);
+            fnode_service_notify_state(svc, 1, &bank);
             break;
         }
-        case 1:     // COCL
+
+        case FBANK_COCL_ID: // COCL
         {
             uint8_t pins = 0;
             pins |= HAL_GPIO_ReadPin(CC1_GPIO_Port, CC1_Pin) << 0;
@@ -447,12 +447,51 @@ static void fnode_service_dget(uint8_t bank_id)
             fbank_state bank;
             bank.id = 1;
             bank.pins8 = &pins;
-            fnode_service_notify_state(service, 1, &bank);
+            fnode_service_notify_state(svc, 1, &bank);
             break;
         }
-        case 2:     // RELY
-            // TODO
+
+        case FBANK_RELY_ID: // RELY
+        {
+            uint8_t pins = 0;
+            pins |= HAL_GPIO_ReadPin(R1_GPIO_Port, R1_Pin) << 0;
+            pins |= HAL_GPIO_ReadPin(R2_GPIO_Port, R2_Pin) << 1;
+            pins |= HAL_GPIO_ReadPin(R3_GPIO_Port, R3_Pin) << 2;
+
+            fbank_state bank;
+            bank.id = 2;
+            bank.pins8 = &pins;
+            fnode_service_notify_state(svc, 1, &bank);
             break;
+        }
+    }
+}
+
+static void fnode_service_data(fnode_service_t *svc, uint32_t banks_num, fbank_state const banks[])
+{
+    for(uint32_t i = 0; i < banks_num; ++i)
+    {
+        switch (banks[i].id)
+        {
+            case FBANK_TADC_ID:     // TADC
+            {
+                break;
+            }
+
+            case FBANK_COCL_ID:     // COCL
+            {
+                break;
+            }
+
+            case FBANK_RELY_ID:     // RELY
+            {
+                uint8_t const pins = *banks[i].pins8;
+                HAL_GPIO_WritePin(R1_GPIO_Port, R1_Pin, (pins >> 0) & 1);
+                HAL_GPIO_WritePin(R2_GPIO_Port, R2_Pin, (pins >> 1) & 1);
+                HAL_GPIO_WritePin(R3_GPIO_Port, R3_Pin, (pins >> 2) & 1);
+                break;
+            }
+        }
     }
 }
 
@@ -469,9 +508,9 @@ void StartDefaultTask(void const * argument)
 {
 
   /* USER CODE BEGIN 5 */
-
     service = fnode_service_create(SN, FBANKS_NUM, BANKS);
     fnode_service_reg_dget_handler(service, fnode_service_dget);
+    fnode_service_reg_data_handler(service, fnode_service_data);
 
     for(;;)
     {
