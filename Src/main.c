@@ -96,32 +96,8 @@ void StartDefaultTask(void const * argument);
 static void fnode_service_dget(fnode_service_t *svc, uint8_t bank_id);
 static void fnode_service_data(fnode_service_t *svc, uint32_t banks_num, fbank_state const banks[]);
 
-void lightOnOff(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin){
-    GPIO_PinState x = HAL_GPIO_ReadPin(GPIOx, GPIO_Pin);
-
-    if (!HAL_GPIO_ReadPin(GPIOx, GPIO_Pin)){
-        HAL_GPIO_WritePin(GPIOx, GPIO_Pin, GPIO_PIN_SET);
-    } else {
-        HAL_GPIO_WritePin(GPIOx, GPIO_Pin, GPIO_PIN_RESET);
-    }
-}
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-
-    switch (GPIO_Pin){
-        case CC1_Pin:
-            lightOnOff(R1_GPIO_Port, R1_Pin);
-            break;
-        case CC2_Pin:
-            lightOnOff(R2_GPIO_Port, R2_Pin);
-            break;
-        case CC3_Pin:
-            lightOnOff(R3_GPIO_Port, R3_Pin);
-            break;
-        default:
-            break;
-    }
-
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
     if (service)
         fnode_service_dget(service, 1);
 }
