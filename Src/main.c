@@ -105,19 +105,14 @@ void lightOnOff(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin){
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
-    uint8_t pins = 0;
-
     switch (GPIO_Pin){
         case CC1_Pin:
-            pins |= HAL_GPIO_ReadPin(CC1_GPIO_Port, CC1_Pin) << 0;
             lightOnOff(R1_GPIO_Port, R1_Pin);
             break;
         case CC2_Pin:
-            pins |= HAL_GPIO_ReadPin(CC2_GPIO_Port, CC2_Pin) << 1;
             lightOnOff(R2_GPIO_Port, R2_Pin);
             break;
         case CC3_Pin:
-            pins |= HAL_GPIO_ReadPin(CC3_GPIO_Port, CC3_Pin) << 2;
             lightOnOff(R3_GPIO_Port, R3_Pin);
             break;
         default:
@@ -126,6 +121,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
     if (service)
     {
+        uint8_t pins = 0;
+        pins |= HAL_GPIO_ReadPin(CC1_GPIO_Port, CC1_Pin) << 0;
+        pins |= HAL_GPIO_ReadPin(CC2_GPIO_Port, CC2_Pin) << 1;
+        pins |= HAL_GPIO_ReadPin(CC3_GPIO_Port, CC3_Pin) << 2;
+
         fbank_state bank;
         bank.id = 1;
         bank.pins8 = &pins;
