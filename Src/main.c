@@ -93,6 +93,8 @@ void StartDefaultTask(void const * argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+static void fnode_service_dget(uint8_t bank_id);
+
 void lightOnOff(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin){
     GPIO_PinState x = HAL_GPIO_ReadPin(GPIOx, GPIO_Pin);
 
@@ -119,18 +121,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
             break;
     }
 
-    if (service)
-    {
-        uint8_t pins = 0;
-        pins |= HAL_GPIO_ReadPin(CC1_GPIO_Port, CC1_Pin) << 0;
-        pins |= HAL_GPIO_ReadPin(CC2_GPIO_Port, CC2_Pin) << 1;
-        pins |= HAL_GPIO_ReadPin(CC3_GPIO_Port, CC3_Pin) << 2;
-
-        fbank_state bank;
-        bank.id = 1;
-        bank.pins8 = &pins;
-        fnode_service_notify_state(service, 1, &bank);
-    }
+    fnode_service_dget(1);
 }
 
 /* USER CODE END 0 */
@@ -430,6 +421,9 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 static void fnode_service_dget(uint8_t bank_id)
 {
+    if (!service)
+        return;
+
     switch(bank_id)
     {
         case 0:     // TADC
@@ -444,8 +438,18 @@ static void fnode_service_dget(uint8_t bank_id)
             break;
         }
         case 1:     // COCL
-            // TODO
+        {
+            uint8_t pins = 0;
+            pins |= HAL_GPIO_ReadPin(CC1_GPIO_Port, CC1_Pin) << 0;
+            pins |= HAL_GPIO_ReadPin(CC2_GPIO_Port, CC2_Pin) << 1;
+            pins |= HAL_GPIO_ReadPin(CC3_GPIO_Port, CC3_Pin) << 2;
+
+            fbank_state bank;
+            bank.id = 1;
+            bank.pins8 = &pins;
+            fnode_service_notify_state(service, 1, &bank);
             break;
+        }
         case 2:     // RELY
             // TODO
             break;
